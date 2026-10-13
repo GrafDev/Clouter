@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Googletor</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--tx:#1d1d1f;--mut:#6e6e73;--ac:#0071e3;--bd:#d2d2d7;--ok:#248a3d;--er:#d70015}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1e;--card:#2c2c2e;--tx:#f5f5f7;--mut:#98989d;--ac:#0a84ff;--bd:#48484a;--ok:#30d158;--er:#ff453a}}
+*{box-sizing:border-box}
+body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);padding:20px}
+h1{font-size:20px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+input[type=text],select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:flex;gap:8px;margin-top:8px;align-items:center}
+button{padding:8px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;cursor:pointer}
+button.sec{background:transparent;color:var(--ac);border:1px solid var(--bd)}
+button:disabled{opacity:.5}
+.bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.bar>i{display:block;height:100%;background:var(--ac)}
+.mut{color:var(--mut);font-size:12px}
+.job .t{display:flex;justify-content:space-between;gap:8px}
+.job .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.er{color:var(--er)}.ok{color:var(--ok)}
+details summary{cursor:pointer;color:var(--mut)}
+a{color:var(--ac)}
+</style></head><body>
+<h1>Googletor</h1>
+
+<div class="card">
+  <input id="src" type="text" placeholder="magnet:?xt=urn:btih:… или путь к .torrent">
+  <div class="row">
+    <select id="dest" style="width:auto">
+      <option value="drive">Google Drive (любой размер)</option>
+      <option value="icloud">iCloud Drive</option>
+    </select>
+    <button class="sec" onclick="pick()">Выбрать .torrent</button>
+    <span style="flex:1"></span>
+    <button onclick="add()">Скачать</button>
+  </div>
+  <div id="msg" class="mut" style="margin-top:8px"></div>
+</div>
+
+<div id="jobs"></div>
+<div class="row"><button class="sec" onclick="clearDone()">Очистить завершённые</button></div>
+
+<details class="card" style="margin-top:14px">
+  <summary>Настройки</summary>
+  <p><b>Google Drive</b> <span id="gstate" class="mut"></span></p>
+  <p class="mut">1) В <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>
+  создайте проект, включите Drive API и OAuth client ID типа «Desktop app».
+  2) Скачайте JSON и загрузите его сюда.</p>
+  <div class="row">
+    <button class="sec" onclick="creds()">Загрузить credentials.json</button>
+    <button class="sec" onclick="signin()">Войти в Google</button>
+    <button class="sec" onclick="signout()">Выйти</button>
+  </div>
+  <p style="margin-top:14px"><b>Окно на диске</b> (ГБ): <input id="win" type="text" style="width:70px" value="2" onchange="api().set_window(this.value)">
+  <span class="mut">максимум, сколько Google-загрузка держит на диске</span></p>
+  <p class="mut" id="icl"></p>
+</details>
+
+<script>
+const api=()=>window.pywebview.api;
+const gb=b=>(b/1e9).toFixed(2)+' ГБ';
+const rate=b=>(b/1e6).toFixed(1)+' МБ/с';
+async function add(){
+  const r=await api().add(document.getElementById('src').value,document.getElementById('dest').value);
+  const m=document.getElementById('msg');
+  if(r.error){m.textContent=r.error;m.className='er'}else{m.textContent='';document.getElementById('src').value=''}
+  refresh();
+}
+async function pick(){const p=await api().pick_torrent();if(p)document.getElementById('src').value=p}
+async function clearDone(){await api().clear_finished();refresh()}
+async function creds(){await api().pick_credentials();settings()}
+async function signin(){const r=await api().sign_in();
+  document.getElementById('gstate').textContent=r.error?r.error:'вход выполнен';settings()}
+async function signout(){await api().sign_out();settings()}
+async function settings(){
+  const s=await api().settings();
+  document.getElementById('gstate').textContent=s.signed_in?'— вход выполнен':(s.creds?'— credentials загружен, нужен вход':'— не настроен');
+  document.getElementById('win').value=s.window_gb;
+  document.getElementById('icl').textContent=s.icloud?'iCloud Drive найден. Файл должен целиком помещаться на диск Mac.':'iCloud Drive не найден.';
+}
+async function refresh(){
+  const jobs=await api().list();
+  const el=document.getElementById('jobs');
+  el.innerHTML=jobs.map(j=>{
+    const pct=j.total?Math.min(100,j.done*100/j.total):0;
+    const cls=j.error?'er':(j.status==='Готово'?'ok':'');
+    return `<div class="card job"><div class="t"><span class="n">${esc(j.name)}</span>
+      ${j.finished?'':`<button class="sec" onclick="api().cancel('${j.id}')">Отмена</button>`}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="mut"><span class="${cls}">${esc(j.error||j.status)}</span> · ${gb(j.done)} / ${gb(j.total)}
+      ${j.finished?'':` · ↓ ${rate(j.rate)} · пиров ${j.peers}`} · ${j.dest==='drive'?'Google Drive':'iCloud'}</div></div>`}).join('');
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+window.addEventListener('pywebviewready',()=>{settings();refresh();setInterval(refresh,1000)});
+</script></body></html>

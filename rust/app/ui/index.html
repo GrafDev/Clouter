@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clouter</title>
+<style>
+:root{
+  --bg:#f2f2f4;--card:#ffffff;--tx:#1d1d1f;--mut:#6e6e73;--hair:rgba(0,0,0,.10);
+  --ac:#c81e32;--ac-bg:rgba(200,30,50,.10);--ac-bd:rgba(200,30,50,.40);--ok:#16a34a;--er:#dc2626;--field:#f2f2f4
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1e1e20;--card:#2a2a2d;--tx:#f5f5f7;--mut:#98989f;--hair:rgba(255,255,255,.10);
+  --ac:#fb7185;--ac-bg:rgba(251,113,133,.16);--ac-bd:rgba(251,113,133,.45);--ok:#34d399;--er:#fb7185;--field:#1e1e20}}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+body{margin:0;font:13px -apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+header{position:relative;display:flex;align-items:center;gap:14px;padding:18px 78px 6px 20px;flex-wrap:nowrap}
+header .logo{width:60px;height:60px;flex:none}
+.ht b{font-size:26px;letter-spacing:.2px;line-height:1.1;display:block}
+.ht span{color:var(--mut);font-size:13px}
+.hsteps{display:flex;align-items:center;margin-left:auto;flex-wrap:nowrap}
+.step{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);white-space:nowrap}
+.step i{font-style:normal;font-weight:700;width:22px;height:22px;border-radius:11px;background:var(--ac-bg);color:var(--ac);display:grid;place-items:center;font-size:11px;flex:none}
+.dots{width:22px;border-top:2px dotted var(--hair);margin:0 9px;flex:none}
+.gear{position:absolute;top:12px;right:14px;background:transparent;border:1px solid var(--hair);color:var(--mut);width:46px;height:46px;padding:0;border-radius:12px;display:grid;place-items:center}
+.gear:hover{color:var(--tx);background:var(--hair)}
+
+main{padding:6px 20px 12px;flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
+.center{flex:1;display:flex;flex-direction:column;min-height:0}
+.center .wrap{margin:auto 0;max-height:100%;display:flex;flex-direction:column;gap:12px;width:100%;padding:8px 0}
+
+.card{background:var(--card);border:1px solid var(--hair);border-radius:10px;padding:14px}
+.main{padding:20px}
+.field{display:flex;gap:8px}
+input[type=text],input[type=password],select{width:100%;padding:9px 11px;border:1px solid var(--hair);border-radius:8px;background:var(--field);color:var(--tx);font:inherit;outline:none}
+.main input[type=text]{font-size:14px;padding:13px 14px;border-radius:10px}
+input:focus,select:focus{border-color:var(--ac-bd);box-shadow:0 0 0 3px var(--ac-bg)}
+button{font:inherit;font-weight:700;font-size:12px;padding:8px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;cursor:pointer;white-space:nowrap}
+button:active{opacity:.75}
+button.q{background:var(--card);color:var(--tx);font-weight:500;border:1px solid var(--hair)}
+button.q:active{background:var(--hair)}
+.main .go{font-size:14px;padding:12px 30px;border-radius:10px}
+button:disabled{background:var(--hair);color:var(--mut);cursor:default;opacity:1}
+button:disabled:active{opacity:1}
+.mut{color:var(--mut)}.er{color:var(--er)}.ok{color:var(--ok)}
+#msg{font-size:12px}
+
+.job{display:flex;flex-direction:column;gap:6px}
+.job .t{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.job .n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:6px;background:var(--hair);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ac),#f43f5e);transition:width .4s}
+.meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut);flex-wrap:wrap}
+.pill{padding:2px 8px;border-radius:5px;background:var(--hair);font-weight:600;color:var(--tx)}
+.pill.ok{background:rgba(52,211,153,.16);color:var(--ok)}.pill.er{background:rgba(251,113,133,.16);color:var(--er)}
+.pill.run{background:var(--ac-bg);color:var(--ac)}
+
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:9;backdrop-filter:blur(3px)}
+.ov.on{display:flex}
+.modal{width:100%;max-width:400px;max-height:100%;overflow:auto;background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.modal h3{margin:0 0 2px;font-size:15px}
+.cl{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;border:1px solid var(--hair);margin-top:8px;cursor:pointer;background:var(--card)}
+.cl:hover{border-color:var(--ac-bd);background:var(--ac-bg)}
+.cl.off{opacity:.5;cursor:default}.cl.off:hover{border-color:var(--hair);background:var(--card)}
+.cl .lg{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;flex:none}
+.cl b{display:block}.cl small{color:var(--mut);font-size:11.5px}
+.cl .go{margin-left:auto;color:var(--mut);font-size:16px}
+.cl.last{border-color:var(--ac-bd)}
+.fl{max-height:240px;overflow:auto;margin-top:8px;border:1px solid var(--hair);border-radius:10px}
+.fr{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--hair)}
+.fr:last-child{border-bottom:0}.fr:hover{background:var(--ac-bg)}
+.fr .fi{color:var(--ac)}.fr .go{margin-left:auto;color:var(--mut)}
+.fe{padding:16px;text-align:center;color:var(--mut);font-size:12px}
+.crumbs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:12px;margin-top:8px}
+.crumbs a{cursor:pointer;color:var(--ac)}.crumbs span{color:var(--mut)}
+.mrow{display:flex;gap:8px;margin-top:12px;align-items:center}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--hair)}
+.srow:last-of-type{border-bottom:0}
+.srow label{font-weight:600}.srow small{display:block;color:var(--mut);font-weight:400;font-size:11.5px;margin-top:2px}
+.srow select{width:auto;min-width:150px}
+a{color:var(--ac)}
+footer{display:flex;justify-content:space-between;align-items:center;padding:0 20px 14px;font-size:11px;color:var(--mut);gap:10px}
+body.drag .drop{border-color:var(--ac);background:var(--ac-bg)}
+@media(max-width:820px){header{flex-wrap:wrap}.hsteps{margin-left:0;width:100%}}
+.bars{display:grid;grid-template-columns:auto 1fr 58px;gap:5px 10px;align-items:center;font-size:11.5px;color:var(--mut)}
+.bars .bar{height:6px}.bars .bp{text-align:right}
+.bar.cache>i{background:linear-gradient(90deg,#10b981,#34d399);transition:width .6s}
+.bar.up>i{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.cf{border:1px solid var(--ac-bd);background:var(--ac-bg);border-radius:10px;padding:10px 12px;font-size:12.5px}
+.sett{max-width:460px;padding:0;overflow:auto;max-height:92vh}
+.sett-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 4px;position:sticky;top:0;background:var(--card);z-index:1}
+.sett-head h3{margin:0;font-size:17px}
+.sett .x{background:transparent;color:var(--mut);border:0;font-size:14px;padding:6px 8px;border-radius:8px;font-weight:400}
+.sett .x:hover{background:var(--hair);color:var(--tx)}
+.sett .sec{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;padding:14px 20px 6px}
+.sett .grp{margin:0 14px;border:1px solid var(--hair);border-radius:12px;background:var(--bg);overflow:hidden}
+.sett .grp:last-child{margin-bottom:16px}
+.sett .srow{padding:11px 14px;border-bottom:1px solid var(--hair);gap:14px}
+.sett .srow:last-child{border-bottom:0}
+.sett .srow>label:first-child{flex:1;min-width:0}
+.sett select{background:var(--card);padding:6px 8px;min-width:130px}
+.sett .num{width:64px;text-align:center;padding:6px 8px;background:var(--card)}
+.sw{position:relative;width:42px;height:25px;flex:none;display:inline-block}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw span{position:absolute;inset:0;border-radius:13px;background:var(--hair);transition:.2s;cursor:pointer}
+.sw span::before{content:"";position:absolute;width:21px;height:21px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:.2s}
+.sw input:checked+span{background:var(--ac)}
+.sw input:checked+span::before{transform:translateX(17px)}
+</style></head><body>
+
+<header>
+  <img class="logo" src="icon.png" alt="">
+  <div class="ht"><b>Clouter</b><span data-i="tagline"></span></div>
+  <div class="hsteps">
+    <div class="step"><i>1</i><span data-i="step1"></span></div><div class="dots"></div>
+    <div class="step"><i>2</i><span data-i="step2"></span></div><div class="dots"></div>
+    <div class="step"><i>3</i><span data-i="step3"></span></div>
+  </div>
+  <button class="gear" onclick="openSettings()" id="gear"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+</header>
+
+<main>
+  <div class="card" id="defbar" style="display:none;align-items:center;gap:10px;justify-content:space-between;padding:10px 14px">
+    <span class="mut" data-i="def_text"></span>
+    <button onclick="makeDefault()" data-i="def_btn"></button>
+  </div>
+
+  <div class="center"><div class="wrap">
+    <div class="card drop main">
+      <div class="field">
+        <input id="src" type="text" data-ph="ph_src" autofocus>
+        <button class="q" onclick="pick()" data-i="btn_open"></button>
+      </div>
+      <div class="field" style="margin-top:16px;align-items:center">
+        <button id="dl" class="go" onclick="ask()" disabled data-i="btn_download"></button>
+        <span id="msg" class="mut" style="margin:0 0 0 4px"></span>
+      </div>
+    </div>
+
+    <div id="diskline" class="mut" style="font-size:12px;padding:0 4px;line-height:1.5"></div>
+
+    <div id="jobs" style="display:flex;flex-direction:column;gap:10px;flex:1 1 auto;min-height:0;overflow-y:auto"></div>
+  </div></div>
+</main>
+
+<footer><span data-i="foot" style="flex:1"></span><span id="ver" style="opacity:.7"></span><button class="q" onclick="openHistory()" data-i="history"></button></footer>
+
+<!-- ключ приложения / вход -->
+<div class="ov" id="setup" onclick="if(event.target===this)closeSetup()">
+  <div class="modal">
+    <h3 id="setup-title"></h3>
+    <div class="mut" style="margin-top:6px;line-height:1.5" id="setup-help"></div>
+    <div style="margin-top:8px"><a href="#" onclick="openConsole();return false" id="setup-link"></a></div>
+    <div id="jsonrow" style="margin-top:12px"><button class="q" onclick="pickJson()" data-i="pick_json"></button></div>
+    <input id="cid" type="text" autocomplete="off" style="margin-top:12px">
+    <input id="csec" type="password" autocomplete="off" style="display:none">
+    <div id="smsg" class="mut" style="margin-top:10px;min-height:16px;font-size:12px"></div>
+    <div class="mrow" style="justify-content:flex-end">
+      <button class="q" onclick="closeSetup()" data-i="close"></button>
+      <button id="sbtn" onclick="signinSetup()" data-i="btn_signin"></button>
+    </div>
+  </div>
+</div>
+
+<!-- выбор облака и папки -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeAsk()">
+  <div class="modal">
+    <div id="v1">
+      <h3 data-i="pick_title"></h3>
+      <div class="mut" id="what" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="cloudlist"></div>
+      <div class="mrow" style="justify-content:flex-end"><button class="q" onclick="closeAsk()" data-i="btn_cancel"></button></div>
+    </div>
+    <div id="v2" style="display:none">
+      <h3 id="ftitle"></h3>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="fl" id="flist"></div>
+      <div id="newrow" class="mrow" style="display:none">
+        <input id="newname" type="text" data-ph="folder_name" onkeydown="if(event.key==='Enter')makeFolder()">
+        <button onclick="makeFolder()" data-i="btn_create"></button>
+      </div>
+      <div class="mut" id="fnote" style="font-size:11.5px;margin-top:8px"></div>
+      <div class="mrow">
+        <button class="q" onclick="toggleNew()" data-i="new_folder"></button>
+        <span style="flex:1"></span>
+        <button class="q" id="backbtn" onclick="backOrCancel()" data-i="btn_back"></button>
+        <button onclick="startHere()" data-i="btn_here"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- история -->
+<div class="ov" id="hov" onclick="if(event.target===this)closeHistory()">
+  <div class="modal" style="max-width:560px">
+    <h3 data-i="history"></h3>
+    <div id="hlist" style="max-height:340px;overflow:auto;margin-top:10px;border:1px solid var(--hair);border-radius:10px"></div>
+    <div class="mrow" style="justify-content:space-between">
+      <button class="q" onclick="clearHistory()" data-i="history_clear"></button>
+      <button class="q" onclick="closeHistory()" data-i="close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- настройки -->
+<div class="ov" id="sov" onclick="if(event.target===this)closeSettings()">
+  <div class="modal sett">
+    <div class="sett-head"><h3 data-i="settings"></h3><button class="x" onclick="closeSettings()" aria-label="close">✕</button></div>
+
+    <div class="sec" data-i="set_general"></div>
+    <div class="grp">
+      <div class="srow"><label data-i="language"></label><select id="langsel" onchange="setLang(this.value)"></select></div>
+      <div class="srow"><label data-i="app_default"></label><span id="defstate"></span></div>
+    </div>
+
+    <div class="sec" data-i="set_downloads"></div>
+    <div class="grp">
+      <div class="srow"><label><span data-i="parallel"></span><small data-i="parallel_hint"></small></label><select id="parsel" onchange="saveParallel(this.value)"></select></div>
+      <div class="srow"><label><span data-i="cache_mode"></span><small data-i="cache_mode_hint"></small></label>
+        <select id="cachesel" onchange="saveCache()"><option value="disk" data-i="cache_disk"></option><option value="ram" data-i="cache_ram"></option></select></div>
+      <div class="srow" id="ramrow"><label><span data-i="ram_size"></span><small data-i="ram_size_hint"></small></label>
+        <select id="ramsel" onchange="saveCache()"><option value="256">256 MB</option><option value="512">512 MB</option><option value="1024">1 GB</option><option value="2048">2 GB</option></select></div>
+      <div class="srow"><label><span data-i="tmp_files"></span><small data-i="tmp_hint"></small></label>
+        <span style="display:flex;gap:10px;align-items:center"><span class="mut" id="tmpsize"></span><button class="q" id="tmpbtn" onclick="clearTmp()" data-i="tmp_clear"></button></span></div>
+      <div class="srow" id="diskrow"><label><span data-i="disk_window"></span><small data-i="disk_window_hint"></small></label>
+        <input id="win" type="text" class="num" value="2" onchange="saveWin()"></div>
+    </div>
+
+    <div class="sec" data-i="set_display"></div>
+    <div class="grp">
+      <div class="srow"><label><span data-i="show_cache"></span><small data-i="show_cache_hint"></small></label>
+        <label class="sw"><input type="checkbox" id="swcache" onchange="savePref('showCache',this.checked)"><span></span></label></div>
+      <div class="srow"><label><span data-i="show_up"></span><small data-i="show_up_hint"></small></label>
+        <label class="sw"><input type="checkbox" id="swup" onchange="savePref('showUp',this.checked)"><span></span></label></div>
+    </div>
+
+    <div class="sec" data-i="accounts"></div>
+    <div class="grp"><div id="acctlist" style="padding:4px 14px"></div></div>
+  </div>
+</div>
+
+<script src="i18n.js"></script>
+<script>
+const T=window.__TAURI__, invoke=T.core.invoke, $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---------- локализация ----------
+const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+function detectLang(){
+  const saved=LS('lang'); if(saved&&I18N[saved])return saved;
+  const n=(navigator.language||'en').toLowerCase().slice(0,2);
+  return I18N[n]?n:'en';
+}
+let lang=detectLang();
+function t(key,...a){
+  let s=(I18N[lang]&&I18N[lang][key])??I18N.en[key]??key;
+  a.forEach((v,i)=>s=s.split('{'+i+'}').join(v));
+  return s;
+}
+function errText(m){
+  m=String(m);
+  const parts=m.split('|'), code=parts[0];
+  if(code==='AUTH_REQUIRED'||code.startsWith('E_')){const k='err_'+code;return t(k,...parts.slice(1)).replace(/^err_/,'')}
+  return m;
+}
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+  document.querySelectorAll('[data-ph]').forEach(e=>e.placeholder=t(e.dataset.ph));
+  $('gear').title=t('settings');
+  renderSettings();refresh();checkDefault();
+}
+function setLang(l){lang=l;LS('lang',l);applyLang()}
+let sayTimer;
+const say=(txt,bad)=>{$('msg').textContent=txt||'';$('msg').className=bad?'er':'mut';
+  clearTimeout(sayTimer);if(txt)sayTimer=setTimeout(()=>say(''),bad?10000:6000)};
+const superseded=e=>String(e).startsWith('E_LOGIN_SUPERSEDED');
+const gbF=b=>(b/1e9).toFixed(2)+' '+t('gb'), rateF=b=>(b/1e6).toFixed(1)+' '+t('mbs');
+
+// ---------- облака ----------
+let clouds={system:[],providers:[],google_hint:null};
+const sysBy=re=>clouds.system.findIndex(c=>re.test(c.name));
+let lastCloud=LS('lastCloud');
+const prov=id=>(clouds.providers||[]).find(p=>p.id===id)||{signed_in:false,embedded:false,email:null};
+const ROOT={google:'root',dropbox:'',onedrive:'root'};
+const TITLE={google:'Google Drive',dropbox:'Dropbox',onedrive:'OneDrive'};
+const COLORS={google:'#16a34a',dropbox:'#0061ff',onedrive:'#0ea5e9'};
+const GLYPH={google:'G',dropbox:'D',onedrive:'O'};
+function subFor(id){
+  const p=prov(id);
+  if(p.signed_in)return p.email||t('acct_connected');
+  if(id==='google'&&clouds.google_hint)return t('login_as',clouds.google_hint);
+  return t('login_browser');
+}
+function cloudRows(){
+  return [{id:'google',name:TITLE.google,sub:subFor('google'),ok:true,api:true}];
+}
+let rows=[],pending='';
+async function loadClouds(){clouds=await invoke('clouds');renderSettings()}
+
+function updBtn(){const v=$('src').value.trim();
+  $('dl').disabled=!(v.startsWith('magnet:')||v.includes('magnet:?')||v.toLowerCase().endsWith('.torrent'))}
+
+async function ask(){
+  const src=$('src').value.trim();
+  if(!src){say(t('paste_hint'),true);$('src').focus();return}
+  if(!src.startsWith('magnet:')&&!src.includes('magnet:?')&&!src.toLowerCase().endsWith('.torrent')){say(errText('E_NOT_SOURCE'),true);return}
+  say('');pending=src;await loadClouds();rows=cloudRows();
+  // Одно облако: окно выбора облака не нужно, сразу идём к выбору папки.
+  if(rows.length===1){await choose(0);return}
+  $('what').textContent=src.length>60?src.slice(0,60)+'…':src;
+  $('cloudlist').innerHTML=rows.map((r,i)=>`<div class="cl ${r.ok?'':'off'} ${r.id===lastCloud?'last':''}" ${r.ok?`onclick="choose(${i})"`:''}>
+    <div class="lg" style="background:${COLORS[r.id]}">${GLYPH[r.id]}</div><div><b>${r.name}</b><small>${esc(r.sub)}</small></div>${r.ok?'<span class="go">›</span>':''}</div>`).join('');
+  $('v2').style.display='none';$('v1').style.display='';
+  $('ov').classList.add('on');
+}
+function closeAsk(){$('ov').classList.remove('on')}
+
+let F={cloud:'',stack:[],row:null};
+async function ensureSignedIn(id){
+  if(prov(id).signed_in)return true;
+  if(!prov(id).embedded){openSetup(id);return false}
+  $('what').textContent=t('opening_browser',TITLE[id]);say(t('opening_browser',TITLE[id]));
+  try{await invoke('sign_in',{provider:id,clientId:null,clientSecret:null});say('');await loadClouds();return true}
+  catch(e){closeAsk();if(!superseded(e))say(errText(e),true);return false}
+}
+let setupFor='';
+const CONSOLE={google:'https://console.cloud.google.com/apis/credentials',dropbox:'https://www.dropbox.com/developers/apps',
+  onedrive:'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade'};
+function openConsole(){invoke('open_link',{url:CONSOLE[setupFor]}).catch(()=>{})}
+function openSetup(id){
+  closeAsk();setupFor=id;
+  $('setup-title').textContent=t('setup_title',TITLE[id]);
+  $('setup-help').textContent=t('help_'+id);
+  $('setup-link').textContent=t('open_console');
+  $('cid').placeholder=t(id==='google'?'ph_google_id':id==='dropbox'?'ph_app_key':'ph_ms_id');
+  $('csec').placeholder=t('ph_secret');
+  $('jsonrow').style.display=id==='google'?'':'none';
+  $('cid').style.display=id==='google'?'none':'';
+  $('sbtn').style.display=id==='google'?'none':'';
+  $('smsg').textContent='';$('smsg').className='mut';$('sbtn').disabled=false;
+  $('setup').classList.add('on');$('cid').focus();
+}
+function closeSetup(){$('setup').classList.remove('on')}
+async function pickJson(){
+  const m=$('smsg');
+  const f=await T.dialog.open({multiple:false,filters:[{name:'JSON',extensions:['json']}]});
+  if(!f)return;
+  try{await invoke('install_google_client',{path:f});
+    m.textContent=t('waiting_browser');m.className='mut';
+    await invoke('sign_in',{provider:'google',clientId:null,clientSecret:null});
+    closeSetup();say(t('connected_ok',TITLE.google));await loadClouds()}
+  catch(e){m.textContent=errText(e);m.className='er'}
+}
+async function signinSetup(){
+  const m=$('smsg');
+  if(!$('cid').value.trim()){m.textContent=t('err_E_NO_KEY');m.className='er';return}
+  m.textContent=t('waiting_browser');m.className='mut';$('sbtn').disabled=true;
+  try{await invoke('sign_in',{provider:setupFor,clientId:$('cid').value||null,clientSecret:$('csec').value||null});
+    $('csec').value='';closeSetup();say(t('connected_ok',TITLE[setupFor]));await loadClouds()}
+  catch(e){if(!superseded(e)){m.textContent=errText(e);m.className='er'}}
+  $('sbtn').disabled=false;
+}
+async function choose(i){
+  const r=rows[i];lastCloud=r.id;LS('lastCloud',r.id);F.row=r;
+  if(r.api){
+    if(!(await ensureSignedIn(r.id)))return;
+    F.cloud=r.id;F.stack=[{id:ROOT[r.id],name:TITLE[r.id]}];
+  }else{const d=r.dest();F.cloud='local';F.stack=[{id:d.path,name:r.name}]}
+  $('v1').style.display='none';$('v2').style.display='';$('newrow').style.display='none';
+  try{const d=await invoke('default_folder',{cloud:F.cloud,root:F.stack[0].id,name:t('downloads')});F.stack.push({id:d.id,name:d.name});F.dl=d.name}catch(e){F.dl=t('downloads')}
+  $('ov').classList.add('on');
+  $('ftitle').textContent=t('folder_in',r.name);
+  $('backbtn').textContent=t(rows.length<=1?'btn_cancel':'btn_back');
+  $('fnote').className='mut';
+  $('fnote').textContent=t(F.cloud==='google'?'note_google':'note_default',F.dl);
+  await showFolders();
+}
+function backOrCancel(){if(rows.length<=1)closeAsk();else backToClouds()}
+function backToClouds(){$('v2').style.display='none';$('v1').style.display='';$('what').textContent=pending.length>60?pending.slice(0,60)+'…':pending}
+const cur=()=>F.stack[F.stack.length-1];
+async function showFolders(){
+  $('crumbs').innerHTML=F.stack.map((c,i)=>i===F.stack.length-1?`<b>${esc(c.name)}</b>`:`<a onclick="goTo(${i})">${esc(c.name)}</a>`).join('<span>›</span>');
+  $('flist').innerHTML=`<div class="fe">${t('loading')}</div>`;
+  try{
+    const fs=await invoke('list_folders',{cloud:F.cloud,id:cur().id});F.items=fs;
+    $('flist').innerHTML=fs.length?fs.map((f,i)=>`<div class="fr" onclick="enter(${i})"><span class="fi">▤</span>${esc(f.name)}<span class="go">›</span></div>`).join(''):`<div class="fe">${t('no_folders')}</div>`;
+  }catch(e){$('flist').innerHTML=`<div class="fe er">${esc(errText(e))}</div>`}
+}
+function goTo(i){F.stack=F.stack.slice(0,i+1);showFolders()}
+function enter(i){F.stack.push({id:F.items[i].id,name:F.items[i].name});showFolders()}
+function toggleNew(){const n=$('newrow');n.style.display=n.style.display==='none'?'flex':'none';if(n.style.display!=='none')$('newname').focus()}
+async function makeFolder(){
+  const name=$('newname').value.trim();if(!name)return;
+  try{const f=await invoke('create_folder',{cloud:F.cloud,parent:cur().id,name});
+    $('newname').value='';$('newrow').style.display='none';F.stack.push({id:f.id,name:f.name});await showFolders()}
+  catch(e){$('fnote').textContent=errText(e);$('fnote').className='er'}
+}
+async function startHere(){
+  const c=cur(),r=F.row;closeAsk();
+  const dest=F.cloud==='local'?{kind:'Folder',path:c.id,name:r.name}
+    :{kind:'Cloud',provider:F.cloud,folder:(c.id===ROOT[F.cloud]?null:c.id)};
+  try{await invoke('add_job',{source:pending,dest,windowGb:parseFloat(LS('win'))||2});$('src').value='';say('');refresh()}
+  catch(e){say(errText(e),true)}
+}
+async function pick(){
+  const p=await T.dialog.open({multiple:false,filters:[{name:'Torrent',extensions:['torrent']}]});
+  if(p){$('src').value=p;say('')}
+}
+async function cancelJob(id,discard){
+  let ok=true; try{ok=await T.dialog.ask(t('cancel_confirm'),{title:t(discard?'discard_title':'cancel_title'),kind:'warning',okLabel:t('cancel_yes'),cancelLabel:t('cancel_no')})}catch(e){}
+  if(ok){invoke(discard?'discard_job':'cancel_job',{id});say(t('cancel_bg'));refresh()}
+}
+async function resumeJob(id){
+  try{await invoke('resume_job',{id});refresh()}
+  catch(e){say(String(e)==='AUTH_REQUIRED'?t('err_AUTH_REQUIRED'):errText(e),true)}
+}
+function resolve(id,c){invoke('resolve_conflict',{id,choice:c});refresh()}
+async function clearDone(){await invoke('clear_finished');refresh()}
+
+// ---------- загрузки ----------
+const fmtSize=b=>b<1073741824?Math.round(b/1048576)+' '+t('mb'):(b/1073741824).toFixed(1)+' '+t('gb');
+const fmtEta=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`};
+function statusText(s){
+  if(s.startsWith('error:'))return t('st_error')+': '+errText(s.slice(6));
+  if(s.startsWith('toobig:')){const [b,f]=s.slice(7).split('|');return t('st_toobig',b,f)}
+  const k='st_'+s;return I18N.en[k]!==undefined?t(k):s;
+}
+async function refresh(){
+  const showCache=pref('showCache',true), showUp=pref('showUp',true);
+  const jobs=(await invoke('list_jobs')).reverse();
+  $('jobs').innerHTML=jobs.map(j=>{
+    const pct=j.total?Math.min(100,j.done*100/j.total):0;
+    const cachePct=j.cache_cap?Math.min(100,j.cache*100/j.cache_cap):0;
+    const dlPct=j.total?Math.min(100,Math.max(j.dl_done,j.done)*100/j.total):0;
+    const bad=j.status.startsWith('error')||j.status.startsWith('toobig'), ok=j.status==='done';
+    const cls=bad?'er':ok?'ok':(j.finished?'':'run');
+    return `<div class="card job"><div class="t"><span class="n">${esc(j.name)}</span>
+      ${j.resumable?`<div style="display:flex;gap:6px"><button onclick="resumeJob(${j.id})">${t('btn_continue')}</button>
+        <button class="q" onclick="cancelJob(${j.id},true)">${t('btn_discard')}</button></div>`
+      :((j.finished||j.status==='cancelling')?'':`<div style="display:flex;gap:6px"><button class="q" onclick="invoke('pause_job',{id:${j.id},paused:${!j.paused}})">${t(j.paused?'btn_resume':'btn_pause')}</button>
+        <button class="q" onclick="cancelJob(${j.id})">${t('btn_cancel')}</button></div>`)}</div>
+      <div class="bars">
+        <span class="bl">${t('bar_dl')}</span><div class="bar"><i style="width:${dlPct}%"></i></div><span class="bp">${Math.round(dlPct)}%</span>
+        ${showCache?`<span class="bl">${t(j.cache_ram?'bar_cache_ram':'bar_cache')}</span><div class="bar cache"><i style="width:${cachePct}%"></i></div><span class="bp">${fmtSize(j.cache)}</span>`:''}
+        ${showUp?`<span class="bl">${t('bar_up')}</span><div class="bar up"><i style="width:${pct}%"></i></div><span class="bp">${Math.round(pct)}%</span>`:''}
+      </div>
+      <div class="meta"><span class="pill ${cls}">${esc(statusText(j.status))}</span>
+        <span>${t('of',gbF(j.done),gbF(j.total))}</span>
+        <span style="margin-left:auto">${esc(j.dest)}</span></div>
+      ${j.finished?'':`<div class="meta" style="font-size:11.5px">
+        <span>↓ ${rateF(j.rate)}</span>${(showUp&&j.up_rate)?`<span>↑ ${rateF(j.up_rate)}</span>`:''}
+        <span>${t('peers',j.peers,j.peers_seen)}</span>
+        ${j.file_count>1?`<span>${t('file_n',j.file_idx,j.file_count)}</span>`:''}
+        ${j.eta?`<span style="margin-left:auto">${t('eta',fmtEta(j.eta))}</span>`:''}</div>`}
+      ${j.status==='queued'?`<div class="mut" style="font-size:11.5px">${esc(t('queue_card'))} <a href="#" onclick="openSettings();return false">${esc(t('queue_hint_link'))}</a></div>`:''}
+      ${j.conflict?`<div class="cf"><div>${t('conflict_text',esc(j.conflict))}</div><div class="mrow" style="margin-top:8px">
+        <button onclick="resolve(${j.id},1)">${t('btn_overwrite')}</button>
+        <button class="q" onclick="resolve(${j.id},2)">${t('btn_keep_both')}</button>
+        <button class="q" onclick="resolve(${j.id},3)">${t('btn_cancel')}</button></div></div>`:''}
+      ${j.needs_api?`<div class="mut">${t('needs_api')}</div>`:''}</div>`}).join('');
+}
+
+// ---------- настройки ----------
+function openSettings(){loadClouds().then(()=>{renderSettings();checkDefault();refreshTmp()});$('sov').classList.add('on')}
+function closeSettings(){$('sov').classList.remove('on')}
+async function refreshTmp(){
+  try{const [sz,idle]=await invoke('cache_info');
+    $('tmpsize').textContent=fmtSize(sz);$('tmpbtn').disabled=!idle||sz<1048576;
+    $('tmpbtn').title=idle?'':t('tmp_busy')}catch(e){}
+}
+async function clearTmp(){
+  const freed=await invoke('clear_cache');
+  if(freed===null){say(t('tmp_busy'),true)}else{say(t('tmp_freed',fmtSize(freed)))}
+  refreshTmp();refreshDisk();
+}
+function saveWin(){const v=parseFloat($('win').value);LS('win',v>0?String(v):'2')}
+async function renderSettings(){
+  $('langsel').innerHTML=LANGS.map(([c,n])=>`<option value="${c}" ${c===lang?'selected':''}>${n}</option>`).join('');
+  $('win').value=LS('win')||'2';
+  $('swcache').checked=pref('showCache',true);$('swup').checked=pref('showUp',true);
+  $('diskrow').style.display=($('cachesel').value==='ram')?'none':'';
+  const on=(clouds.providers||[]).filter(p=>p.signed_in);
+  $('acctlist').innerHTML=on.length?on.map(p=>`<div class="meta" style="margin-top:8px;justify-content:space-between"><span><span class="ok">✓</span> ${TITLE[p.id]} — ${esc(p.email||t('connected'))}</span><button class="q" onclick="signOut('${p.id}')">${t('disconnect')}</button></div>`).join('')
+    :`<div class="mut" style="margin-top:8px">${t('no_accounts')}</div>`;
+}
+async function signOut(id){await invoke('sign_out',{provider:id});await loadClouds()}
+async function checkDefault(){
+  try{const d=await invoke('default_status');
+    $('defbar').style.display=d?'none':'flex';
+    $('defstate').innerHTML=d?`<span class="ok">✓ ${t('default_yes')}</span>`:`<button onclick="makeDefault()">${t('def_btn')}</button>`;
+  }catch(e){}
+}
+async function makeDefault(){
+  try{await invoke('make_default');await checkDefault();say(t('def_done'))}catch(e){say(errText(e),true)}
+}
+
+// ---------- история ----------
+async function openHistory(){
+  $('hov').classList.add('on');
+  let h=[]; try{h=await invoke('history_list')}catch(e){}
+  $('hlist').innerHTML=h.length?h.map(x=>{
+    const ok=x.status==='done', bad=x.status.startsWith('error')||x.status.startsWith('toobig');
+    const when=new Date(x.at*1000).toLocaleString(lang,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="fr" style="cursor:default;flex-wrap:wrap"><div style="flex:1;min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.name)}</div>
+      <div class="mut" style="font-size:11.5px">${esc(x.cloud)} · ${x.size?gbF(x.size):'—'} · ${esc(when)}</div></div>
+      <span class="pill ${ok?'ok':bad?'er':''}">${esc(statusText(x.status))}</span></div>`}).join(''):`<div class="fe">${t('history_empty')}</div>`;
+}
+function closeHistory(){$('hov').classList.remove('on')}
+async function clearHistory(){await invoke('history_clear');openHistory()}
+
+// ---------- панель «Диск» ----------
+const fmtGB=b=>(b/1073741824).toFixed(b<10*1073741824?1:0);
+async function refreshDisk(){
+  if(!pref('showCache',true)){$('diskline').innerHTML='';return}
+  let d; try{d=await invoke('disk_info',{windowGb:parseFloat(LS('win'))||2})}catch(e){return}
+  const parts=[];
+  if(d.ram_mode){
+    parts.push(t('ram_line',fmtGB(d.ram_used),fmtGB(Math.min(d.ram_total/4,(parseInt(LS('ramMb'))||512)*1048576))));
+  }else{
+    parts.push(t('disk_line',fmtGB(d.free),fmtGB(d.cache)));
+  }
+  parts.push(t('disk_rec',d.recommended,d.max));
+  let warn='';
+  if(!d.ram_mode&&d.free<2*1073741824)warn=t('disk_warn_low');
+  else if(!d.ram_mode&&d.max>d.recommended)warn=t('disk_warn_many',d.recommended);
+  let hint='';
+  if(d.queued>0&&d.max<d.recommended)hint=`<div style="margin-top:4px">${esc(t('queue_hint',d.queued,d.recommended))} <a href="#" onclick="openSettings();return false">${esc(t('queue_hint_link'))}</a></div>`;
+  $('diskline').innerHTML=esc(parts.join(' · '))+(warn?` <span class="er">· ${esc(warn)}</span>`:'')+hint;
+}
+const pref=(k,def)=>{const v=LS(k);return v===null?def:v==='1'};
+function savePref(k,on){LS(k,on?'1':'0');refresh();refreshDisk()}
+function saveParallel(v){LS('parallel',v);invoke('set_parallel',{n:parseInt(v)})}
+function saveCache(){
+  LS('cacheMode',$('cachesel').value);LS('ramMb',$('ramsel').value);
+  $('ramrow').style.display=$('cachesel').value==='ram'?'':'none';
+  $('diskrow').style.display=$('cachesel').value==='ram'?'none':'';
+  invoke('set_ram_mode',{on:$('cachesel').value==='ram',mb:parseInt($('ramsel').value)});
+}
+function loadPrefs(){
+  const par=parseInt(LS('parallel'))||1;
+  $('parsel').innerHTML=[1,2,3,4,5].map(n=>`<option value="${n}" ${n===par?'selected':''}>${n}</option>`).join('');
+  $('cachesel').value=LS('cacheMode')||'disk';$('ramsel').value=LS('ramMb')||'512';
+  $('ramrow').style.display=$('cachesel').value==='ram'?'':'none';
+  invoke('set_parallel',{n:par});
+  invoke('set_ram_mode',{on:$('cachesel').value==='ram',mb:parseInt($('ramsel').value)});
+}
+
+// ---------- окно подстраивается под содержимое ----------
+let lastFit=0;
+async function fitWindow(force){
+  try{
+    const w=T.window.getCurrentWindow();
+    let need=document.querySelector('header').offsetHeight+(document.querySelector('.center .wrap').scrollHeight-$('jobs').clientHeight+$('jobs').scrollHeight)+document.querySelector('footer').offsetHeight+34;
+    if($('ov').classList.contains('on')||$('sov').classList.contains('on')||$('setup').classList.contains('on'))need=Math.max(need,560);
+    const first=$('jobs').firstElementChild;
+    const q=x=>document.querySelector(x);
+    const minH=first?Math.round(q('header').offsetHeight+q('footer').offsetHeight+q('.center .wrap .main').offsetHeight+$('diskline').offsetHeight+first.offsetHeight+100):340;
+    need=Math.max(340,minH,Math.min(Math.round(screen.availHeight*2/3),Math.round(need)));
+    invoke('set_min_height',{h:Math.max(340,minH)}).catch(()=>{});
+    const size=await w.innerSize(), sf=await w.scaleFactor();
+    const cur=Math.round(size.height/sf);
+    if(!force&&cur>=minH&&Math.abs(need-lastFit)<12)return;
+    lastFit=need;
+    await w.setSize(new T.dpi.LogicalSize(Math.round(size.width/sf),need));
+  }catch(e){}
+}
+
+// ---------- события ----------
+async function drainIncoming(){
+  try{const items=await invoke('take_incoming');
+    if(items.length){$('src').value=items[items.length-1];updBtn();ask()}}catch(e){}
+}
+T.event.listen('incoming',drainIncoming);
+T.event.listen('tauri://drag-enter',()=>document.body.classList.add('drag'));
+T.event.listen('tauri://drag-leave',()=>document.body.classList.remove('drag'));
+T.event.listen('tauri://drag-drop',e=>{
+  document.body.classList.remove('drag');
+  const p=(e.payload.paths||[]).find(x=>x.toLowerCase().endsWith('.torrent'));
+  if(p){$('src').value=p;ask()}else say(t('need_torrent'),true)});
+$('src').addEventListener('paste',async ev=>{
+  const txt=(ev.clipboardData||window.clipboardData).getData('text');
+  if(txt.includes('magnet:?')){ev.preventDefault();$('src').value=txt.slice(txt.indexOf('magnet:?')).split(/\s/)[0];
+    try{const m=await invoke('parse_magnet',{text:txt});say(t('recognized',m.name||m.info_hash))}catch(e){say(errText(e),true)}}
+});
+$('src').addEventListener('input',()=>{updBtn();say('')});
+$('src').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAsk();closeSettings();closeSetup();closeHistory()}});
+
+try{T.app.getVersion().then(v=>{$('ver').textContent='v'+v})}catch(e){}
+loadPrefs();applyLang();loadClouds();updBtn();drainIncoming();setTimeout(()=>fitWindow(true),300);
+setInterval(refresh,1000);setInterval(refreshDisk,2000);refreshDisk();setInterval(fitWindow,700);setInterval(updBtn,250);setInterval(checkDefault,15000);
+</script></body></html>

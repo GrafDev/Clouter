@@ -1,0 +1,11 @@
+.clouter-keys.env
+rust/target/
+rust/app/src-tauri/target/
+.venv/
+tmp_download/
+client_secret_*.json
+Clouter.app/
+.DS_Store
+__pycache__/
+build/
+dist/
